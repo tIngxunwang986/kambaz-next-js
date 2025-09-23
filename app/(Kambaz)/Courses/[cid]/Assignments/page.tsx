@@ -14,7 +14,11 @@ const items: Row[] = [
     { aid: "345", title: "A3", due: "Oct 20 at 11:59pm", pts: 100, notAvailable: "Oct 06 at 12:00am" },
 ];
 
-export default function Assignments() {
+export default async function Assignments(
+    { params }: { params: Promise<{ cid: string }> }
+) {
+    const { cid } = await params;
+
     return (
         <div id="wd-assignments">
             <input id="wd-search-assignment" placeholder="Search for Assignments" />
@@ -28,10 +32,7 @@ export default function Assignments() {
             <ul id="wd-assignment-list">
                 {items.map((a) => (
                     <li key={a.aid} className="wd-assignment-list-item">
-                        <Link
-                            href={`/Courses/1234/Assignments/${a.aid}`}
-                            className="wd-assignment-link"
-                        >
+                        <Link href={`/Courses/${cid}/Assignments/${a.aid}`} className="wd-assignment-link">
                             {a.title}
                         </Link>
                         <div>
