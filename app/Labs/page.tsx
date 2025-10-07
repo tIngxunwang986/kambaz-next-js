@@ -42,11 +42,7 @@ export default function Labs() {
                 </a>
             </p>
 
-            <p>
-                <Link id="wd-kambaz-application-link" href="/Account/Signin">
-                    Link to the Kambaz application
-                </Link>
-            </p>
+            
         </div>
     );
 }
