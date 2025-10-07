@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 export default function Labs() {
     return (
         <div id="wd-labs">
@@ -26,14 +27,13 @@ export default function Labs() {
                     </Link>
                 </li>
                 <li>
-                    <Link href="/" id="wd-kambaz-link">Kambaz
-                    </Link>
+                    <Link href="/" id="wd-kambaz-link">Kambaz</Link>
                 </li>
             </ul>
 
             <p>
                 <a
-                    id="wd-github-link"
+                    id="wd-github"  //
                     href="https://github.com/tIngxunwang986/kambaz-next-js"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -41,8 +41,6 @@ export default function Labs() {
                     GitHub link
                 </a>
             </p>
-
-            
         </div>
     );
 }
