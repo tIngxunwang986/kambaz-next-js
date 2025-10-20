@@ -8,11 +8,17 @@ import { useParams } from "next/navigation";
 import * as db from "@/app/(Kambaz)/Database";
 import Link from "next/link";
 
+type Assignment = {
+    _id: string;
+    course: string;
+    title: string;
+};
+
 export default function AssignmentEditor() {
     const { cid, aid } = useParams();
 
     const assignment = db.assignments.find(
-        (a: any) => a._id === aid
+        (a: Assignment) => a._id === aid
     );
 
     if (!assignment) {
