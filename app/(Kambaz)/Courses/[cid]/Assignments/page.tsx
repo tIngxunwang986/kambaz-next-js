@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { FaCheckCircle, FaEllipsisV, FaPlus } from "react-icons/fa";
 import Button from "react-bootstrap/Button";
@@ -6,23 +7,16 @@ import InputGroup from "react-bootstrap/InputGroup";
 import InputGroupText from "react-bootstrap/InputGroupText";
 import { BsGripVertical } from "react-icons/bs";
 import { FiSearch } from "react-icons/fi";
+import { useParams } from "next/navigation";
+import * as db from "@/app/(Kambaz)/Database";
 
-type Row = {
-    aid: string;
-    title: string;
-    due: string;
-    pts: number;
-    notAvailable: string;
-};
+export default function Assignments() {
+    const params = useParams();
+    const cid = params.cid as string;
 
-const items: Row[] = [
-    { aid: "123", title: "A1", due: "Sep 22 at 11:59pm", pts: 100, notAvailable: "Sep 08 at 12:00am" },
-    { aid: "234", title: "A2", due: "Oct 06 at 11:59pm", pts: 100, notAvailable: "Sep 22 at 12:00am" },
-    { aid: "345", title: "A3", due: "Oct 20 at 11:59pm", pts: 100, notAvailable: "Oct 06 at 12:00am" },
-];
-
-export default async function Assignments({ params }: { params: Promise<{ cid: string }> }) {
-    const { cid } = await params;
+    const courseAssignments = db.assignments.filter(
+        (assignment: any) => assignment.course === cid
+    );
 
     return (
         <div id="wd-assignments">
@@ -50,31 +44,31 @@ export default async function Assignments({ params }: { params: Promise<{ cid: s
 
             <div className="border-start border-success border-3 ps-3">
                 <h3 id="wd-assignments-title" className="d-flex justify-content-between align-items-center">
-          <span>
-            <BsGripVertical className="me-2" />
-            ASSIGNMENTS
-          </span>
+                    <span>
+                        <BsGripVertical className="me-2" />
+                        ASSIGNMENTS
+                    </span>
                     <span className="text-muted small">
-            40% of Total <FaEllipsisV />
-          </span>
+                        40% of Total <FaEllipsisV />
+                    </span>
                 </h3>
 
                 <ul id="wd-assignment-list" className="list-group">
-                    {items.map((a) => (
-                        <li key={a.aid} className="wd-assignment-list-item list-group-item d-flex justify-content-between align-items-center">
+                    {courseAssignments.map((assignment: any) => (
+                        <li key={assignment._id} className="wd-assignment-list-item list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <BsGripVertical className="me-2" />
                                 <FaCheckCircle className="text-success me-2" />
                                 <Link
-                                    href={`/Courses/${cid}/Assignments/${a.aid}`}
+                                    href={`/Courses/${cid}/Assignments/${assignment._id}`}
                                     className="wd-assignment-link text-decoration-none text-dark"
                                 >
-                                    <strong>{a.title}</strong>
+                                    <strong>{assignment.title}</strong>
                                 </Link>
                                 <div className="small text-muted ms-5">
-                                    Multiple Modules | <strong>Not available until</strong> {a.notAvailable}
+                                    Multiple Modules | <strong>Not available until</strong> May 6 at 12:00am
                                     <br />
-                                    <strong>Due</strong> {a.due} | {a.pts} pts
+                                    <strong>Due</strong> May 13 at 11:59pm | 100 pts
                                 </div>
                             </div>
                             <FaEllipsisV />
