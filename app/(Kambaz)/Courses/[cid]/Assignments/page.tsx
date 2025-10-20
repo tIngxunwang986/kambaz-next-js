@@ -10,12 +10,17 @@ import { FiSearch } from "react-icons/fi";
 import { useParams } from "next/navigation";
 import * as db from "@/app/(Kambaz)/Database";
 
+type Assignment = {
+    _id: string;
+    title: string;
+    course: string;
+};
+
 export default function Assignments() {
-    const params = useParams();
-    const cid = params.cid as string;
+    const { cid } = useParams();
 
     const courseAssignments = db.assignments.filter(
-        (assignment: any) => assignment.course === cid
+        (assignment) => (assignment as Assignment).course === cid
     );
 
     return (
@@ -54,16 +59,16 @@ export default function Assignments() {
                 </h3>
 
                 <ul id="wd-assignment-list" className="list-group">
-                    {courseAssignments.map((assignment: any) => (
-                        <li key={assignment._id} className="wd-assignment-list-item list-group-item d-flex justify-content-between align-items-center">
+                    {courseAssignments.map((assignment) => (
+                        <li key={(assignment as Assignment)._id} className="wd-assignment-list-item list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <BsGripVertical className="me-2" />
                                 <FaCheckCircle className="text-success me-2" />
                                 <Link
-                                    href={`/Courses/${cid}/Assignments/${assignment._id}`}
+                                    href={`/Courses/${cid}/Assignments/${(assignment as Assignment)._id}`}
                                     className="wd-assignment-link text-decoration-none text-dark"
                                 >
-                                    <strong>{assignment.title}</strong>
+                                    <strong>{(assignment as Assignment).title}</strong>
                                 </Link>
                                 <div className="small text-muted ms-5">
                                     Multiple Modules | <strong>Not available until</strong> May 6 at 12:00am
