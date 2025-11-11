@@ -1,21 +1,32 @@
 "use client";
 
 import { redirect } from "next/dist/client/components/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setCurrentUser } from "../reducer";
 import { RootState } from "../../store";
 import { Form, Button } from "react-bootstrap";
 
+interface ProfileType {
+    _id?: string;
+    username?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    dob?: string;
+    email?: string;
+    role?: string;
+}
+
 export default function Profile() {
-    const [profile, setProfile] = useState<any>({});
+    const [profile, setProfile] = useState<ProfileType>({});
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state: RootState) => state.accountReducer);
 
-    const fetchProfile = () => {
+    const fetchProfile = useCallback(() => {
         if (!currentUser) return redirect("/Account/Signin");
         setProfile(currentUser);
-    };
+    }, [currentUser]);
 
     const signout = () => {
         dispatch(setCurrentUser(null));
@@ -24,7 +35,7 @@ export default function Profile() {
 
     useEffect(() => {
         fetchProfile();
-    }, []);
+    }, [fetchProfile]);
 
     return (
         <div

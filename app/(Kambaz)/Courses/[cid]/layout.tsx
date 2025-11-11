@@ -11,7 +11,7 @@ import { RootState } from "../../store";
 export default function CoursesLayout({ children }: { children: ReactNode }) {
     const { cid } = useParams();
     const { courses } = useSelector((state: RootState) => state.coursesReducer);
-    const course = courses.find((course: any) => course._id === cid);
+    const course = courses.find((c) => c._id === cid);
     const [showNavigation, setShowNavigation] = useState(true);
 
     return (

@@ -1,31 +1,54 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { courses } from "../Database";
 import { v4 as uuidv4 } from "uuid";
 
-const initialState = {
-    courses: courses,
+export interface Course {
+    _id: string;
+    name: string;
+    number: string;
+    startDate: string;
+    endDate: string;
+    image?: string;
+    description: string;
+    department?: string;
+    credits?: number;
+    author?: string;
+}
+
+interface CoursesState {
+    courses: Course[];
+}
+
+const initialState: CoursesState = {
+    courses: courses as Course[],
 };
 
 const coursesSlice = createSlice({
     name: "courses",
     initialState,
     reducers: {
-        addNewCourse: (state, { payload: course }) => {
-            const newCourse = { ...course, _id: uuidv4() };
-            state.courses = [...state.courses, newCourse] as any;
+        addNewCourse: (state, action: PayloadAction<Course>) => {
+            const newCourse: Course = {
+                ...action.payload,
+                _id: action.payload._id === "0" ? uuidv4() : action.payload._id
+            };
+            state.courses.push(newCourse);
         },
-        deleteCourse: (state, { payload: courseId }) => {
+        deleteCourse: (state, action: PayloadAction<string>) => {
             state.courses = state.courses.filter(
-                (course: any) => course._id !== courseId
+                (course) => course._id !== action.payload
             );
         },
-        updateCourse: (state, { payload: course }) => {
-            state.courses = state.courses.map((c: any) =>
-                c._id === course._id ? course : c
-            ) as any;
+        updateCourse: (state, action: PayloadAction<Course>) => {
+            const index = state.courses.findIndex(
+                (c) => c._id === action.payload._id
+            );
+            if (index !== -1) {
+                state.courses[index] = action.payload;
+            }
         },
-        setCourses: (state, { payload: courses }) => {
-            state.courses = courses;
+        setCourses: (state, action: PayloadAction<Course[]>) => {
+            state.courses = action.payload;
         },
     },
 });

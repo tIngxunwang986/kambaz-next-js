@@ -5,16 +5,22 @@ import { useSelector } from "react-redux";
 import { RootState } from "./store";
 import { ListGroup, ListGroupItem } from "react-bootstrap";
 
+interface Todo {
+    id: string | number;
+    title: string;
+    completed?: boolean;
+}
+
 export default function ArrayStateVariable() {
     const [array, setArray] = useState([1, 2, 3, 4, 5]);
-    const { todos } = useSelector((state: RootState) => state.todosReducer);
+    const { todos } = useSelector((state: RootState) => state.todosReducer) as { todos: Todo[] };
 
     const addElement = () => {
         setArray([...array, Math.floor(Math.random() * 100)]);
     };
 
     const deleteElement = (index: number) => {
-        setArray(array.filter((item, i) => i !== index));
+        setArray(array.filter((_, i) => i !== index));
     };
 
     return (
@@ -43,7 +49,7 @@ export default function ArrayStateVariable() {
             </ul>
 
             <ListGroup>
-                {todos.map((todo: any) => (
+                {todos.map((todo) => (
                     <ListGroupItem key={todo.id}>
                         {todo.title}
                     </ListGroupItem>

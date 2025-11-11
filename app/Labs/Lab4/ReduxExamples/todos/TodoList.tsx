@@ -5,9 +5,16 @@ import TodoItem from "./TodoItem";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 
+interface Todo {
+    id: string | number;
+    title: string;
+    completed?: boolean;
+    description?: string;
+}
+
 export default function TodoList() {
     const { todos } = useSelector((state: RootState) =>
-        state.todosReducer);
+        state.todosReducer) as { todos: Todo[] };
 
     return (
         <div id="wd-todo-list-redux">
@@ -15,7 +22,7 @@ export default function TodoList() {
             <ListGroup>
                 <TodoForm />
 
-                {todos.map((todo: any) => (
+                {todos.map((todo) => (
                     <TodoItem
                         key={todo.id}
                         todo={todo}

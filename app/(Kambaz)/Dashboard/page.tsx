@@ -7,19 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addNewCourse, deleteCourse, updateCourse } from "../Courses/reducer";
 import { RootState } from "../store";
 import { enrollCourse, unenrollCourse, Enrollment } from "../Enrollments/reducer";
-
-interface Course {
-    _id: string;
-    name: string;
-    number: string;
-    startDate: string;
-    endDate: string;
-    image?: string;
-    description: string;
-    department?: string;
-    credits?: number;
-    author?: string;
-}
+import type { Course } from "../Courses/reducer";
 
 interface User {
     _id: string;
@@ -33,7 +21,7 @@ interface User {
 export default function Dashboard() {
     const { courses } = useSelector(
         (state: RootState) => state.coursesReducer
-    ) as { courses: Course[] };
+    );
 
     const { currentUser } = useSelector(
         (state: RootState) => state.accountReducer
@@ -118,7 +106,7 @@ export default function Dashboard() {
                         <button
                             className="btn btn-primary float-end"
                             id="wd-add-new-course-click"
-                            onClick={() => dispatch(addNewCourse(course) as any)}
+                            onClick={() => dispatch(addNewCourse(course))}
                         >
                             Add
                         </button>
@@ -126,7 +114,7 @@ export default function Dashboard() {
                         <button
                             className="btn btn-warning float-end me-2"
                             id="wd-update-course-click"
-                            onClick={() => dispatch(updateCourse(course) as any)}
+                            onClick={() => dispatch(updateCourse(course))}
                         >
                             Update
                         </button>
@@ -196,7 +184,7 @@ export default function Dashboard() {
                                             <button
                                                 onClick={(event) => {
                                                     event.preventDefault();
-                                                    dispatch(deleteCourse(course._id) as any);
+                                                    dispatch(deleteCourse(course._id));
                                                 }}
                                                 className="btn btn-danger float-end"
                                                 id="wd-delete-course-click"
