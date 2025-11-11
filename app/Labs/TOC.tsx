@@ -1,4 +1,5 @@
 "use client";
+
 import { Nav, NavItem, NavLink } from "react-bootstrap";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,10 +20,13 @@ export default function TOC() {
                 <NavLink href="/Labs/Lab3" as={Link} className={`nav-link ${pathname.endsWith("Lab3") ? "active" : ""}`}>
                     Lab 3 </NavLink> </NavItem>
             <NavItem>
+                <NavLink href="/Labs/Lab4" as={Link} className={`nav-link ${pathname.endsWith("Lab4") ? "active" : ""}`}>
+                    Lab 4 </NavLink> </NavItem>
+            <NavItem>
                 <NavLink href="/" as={Link}>
                     Kambaz </NavLink> </NavItem>
             <NavItem>
-                <NavLink href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A3">
+                <NavLink href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A4">
                     My GitHub
                 </NavLink>
             </NavItem>

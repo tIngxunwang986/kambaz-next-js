@@ -1,9 +1,13 @@
 "use client"
 
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "./store";
+import { ListGroup, ListGroupItem } from "react-bootstrap";
 
 export default function ArrayStateVariable() {
     const [array, setArray] = useState([1, 2, 3, 4, 5]);
+    const { todos } = useSelector((state: RootState) => state.todosReducer);
 
     const addElement = () => {
         setArray([...array, Math.floor(Math.random() * 100)]);
@@ -37,6 +41,14 @@ export default function ArrayStateVariable() {
                     </li>
                 ))}
             </ul>
+
+            <ListGroup>
+                {todos.map((todo: any) => (
+                    <ListGroupItem key={todo.id}>
+                        {todo.title}
+                    </ListGroupItem>
+                ))}
+            </ListGroup>
 
             <hr/>
         </div>

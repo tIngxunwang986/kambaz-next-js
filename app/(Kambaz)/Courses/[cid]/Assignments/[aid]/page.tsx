@@ -1,34 +1,110 @@
 "use client";
 
+import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
-import { useParams } from "next/navigation";
-import * as db from "@/app/(Kambaz)/Database";
-import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/(Kambaz)/store";
+import { addAssignment, updateAssignment } from "../reducer";
 
 type Assignment = {
     _id: string;
     course: string;
     title: string;
+    description?: string;
+    points?: number;
+    dueDate?: string;
+    availableFrom?: string;
+    availableUntil?: string;
+};
+
+type CurrentUser = {
+    _id: string;
+    username: string;
+    role: "FACULTY" | "STUDENT" | "TA" | "ADMIN";
 };
 
 export default function AssignmentEditor() {
-    const { cid, aid } = useParams();
+    const { cid, aid } = useParams() as { cid: string; aid: string };
+    const router = useRouter();
+    const dispatch = useDispatch();
 
-    const assignment = db.assignments.find(
-        (a: Assignment) => a._id === aid
+    const assignments = useSelector(
+        (state: RootState) =>
+            state.assignmentsReducer.assignments as Assignment[]
     );
 
-    if (!assignment) {
-        return <div>Assignment not found</div>;
-    }
+    const currentUser = useSelector(
+        (state: RootState) =>
+            state.accountReducer.currentUser as CurrentUser | null
+    );
+    const isFaculty = currentUser?.role === "FACULTY";
 
-    const description = "The assignment is available online\n\nSubmit a link to the landing page of your Web application running on Netlify.\n\nThe landing page should include the following:\n\n• Your full name and section\n• Links to each of the lab assignments\n• Link to the Kanbas application\n• Links to all relevant source code repositories\n\nThe Kanbas application should include a link to navigate back to the landing page.";
-    const points = 100;
-    const dueDate = "2024-05-13T23:59";
-    const availableFrom = "2024-05-06T00:00";
+    // existing assignment when editing (undefined when creating new)
+    const existing = assignments.find((a) => a._id === aid);
+
+    // default values (your original constants)
+    const defaultDescription =
+        "The assignment is available online\n\nSubmit a link to the landing page of your Web application running on Netlify.\n\nThe landing page should include the following:\n\n• Your full name and section\n• Links to each of the lab assignments\n• Link to the Kanbas application\n• Links to all relevant source code repositories\n\nThe Kanbas application should include a link to navigate back to the landing page.";
+    const defaultPoints = 100;
+    const defaultDueDate = "2024-05-13T23:59";
+    const defaultAvailableFrom = "2024-05-06T00:00";
+
+    // local editable state
+    const [name, setName] = useState<string>(
+        existing?.title ?? "New Assignment"
+    );
+    const [description, setDescription] = useState<string>(
+        existing?.description ?? defaultDescription
+    );
+    const [points, setPoints] = useState<number>(
+        existing?.points ?? defaultPoints
+    );
+    const [dueDate, setDueDate] = useState<string>(
+        existing?.dueDate ?? defaultDueDate
+    );
+    const [availableFrom, setAvailableFrom] = useState<string>(
+        existing?.availableFrom ?? defaultAvailableFrom
+    );
+    const [availableUntil, setAvailableUntil] = useState<string>(
+        existing?.availableUntil ?? ""
+    );
+
+    const disabled = !isFaculty;
+
+    const handleCancel = () => {
+        // Do NOT update Redux; just go back
+        router.push(`/Courses/${cid}/Assignments`);
+    };
+
+    const handleSave = () => {
+        if (!isFaculty) return;
+
+        const payload: Assignment = {
+            _id: existing ? existing._id : "", // reducer will generate new _id for add
+            course: cid,
+            title: name,
+            description,
+            points,
+            dueDate,
+            availableFrom,
+            availableUntil,
+        };
+
+        if (existing) {
+            // editing
+            dispatch(updateAssignment(payload));
+        } else {
+            // creating new
+            dispatch(addAssignment(payload));
+        }
+
+        router.push(`/Courses/${cid}/Assignments`);
+    };
 
     return (
         <div id="wd-assignments-editor">
@@ -38,7 +114,9 @@ export default function AssignmentEditor() {
                     <Form.Control
                         type="text"
                         id="wd-name"
-                        defaultValue={assignment.title}
+                        value={name}
+                        disabled={disabled}
+                        onChange={(e) => setName(e.target.value)}
                     />
                 </Form.Group>
 
@@ -47,7 +125,9 @@ export default function AssignmentEditor() {
                         as="textarea"
                         rows={10}
                         id="wd-description"
-                        defaultValue={description}
+                        value={description}
+                        disabled={disabled}
+                        onChange={(e) => setDescription(e.target.value)}
                     />
                 </Form.Group>
 
@@ -59,17 +139,21 @@ export default function AssignmentEditor() {
                         <Form.Control
                             type="number"
                             id="wd-points"
-                            defaultValue={points}
+                            value={points}
+                            disabled={disabled}
+                            onChange={(e) => setPoints(Number(e.target.value))}
                         />
                     </Col>
                 </Row>
 
                 <Row className="mb-3">
                     <Col md={3}>
-                        <Form.Label className="text-end d-block">Assignment Group</Form.Label>
+                        <Form.Label className="text-end d-block">
+                            Assignment Group
+                        </Form.Label>
                     </Col>
                     <Col md={9}>
-                        <Form.Select id="wd-group">
+                        <Form.Select id="wd-group" disabled={disabled}>
                             <option value="ASSIGNMENTS">ASSIGNMENTS</option>
                             <option value="QUIZZES">QUIZZES</option>
                             <option value="EXAMS">EXAMS</option>
@@ -80,10 +164,15 @@ export default function AssignmentEditor() {
 
                 <Row className="mb-3">
                     <Col md={3}>
-                        <Form.Label className="text-end d-block">Display Grade as</Form.Label>
+                        <Form.Label className="text-end d-block">
+                            Display Grade as
+                        </Form.Label>
                     </Col>
                     <Col md={9}>
-                        <Form.Select id="wd-display-grade-as">
+                        <Form.Select
+                            id="wd-display-grade-as"
+                            disabled={disabled}
+                        >
                             <option value="PERCENTAGE">Percentage</option>
                             <option value="POINTS">Points</option>
                         </Form.Select>
@@ -92,21 +181,30 @@ export default function AssignmentEditor() {
 
                 <Row className="mb-3">
                     <Col md={3}>
-                        <Form.Label className="text-end d-block">Submission Type</Form.Label>
+                        <Form.Label className="text-end d-block">
+                            Submission Type
+                        </Form.Label>
                     </Col>
                     <Col md={9}>
                         <div className="border rounded p-3">
-                            <Form.Select id="wd-submission-type" className="mb-3">
+                            <Form.Select
+                                id="wd-submission-type"
+                                className="mb-3"
+                                disabled={disabled}
+                            >
                                 <option value="ONLINE">Online</option>
                                 <option value="ON_PAPER">On Paper</option>
                             </Form.Select>
 
-                            <Form.Label className="fw-bold">Online Entry Options</Form.Label>
+                            <Form.Label className="fw-bold">
+                                Online Entry Options
+                            </Form.Label>
                             <Form.Check
                                 type="checkbox"
                                 id="wd-text-entry"
                                 label="Text Entry"
                                 className="mb-2"
+                                disabled={disabled}
                             />
                             <Form.Check
                                 type="checkbox"
@@ -114,23 +212,27 @@ export default function AssignmentEditor() {
                                 label="Website URL"
                                 defaultChecked
                                 className="mb-2"
+                                disabled={disabled}
                             />
                             <Form.Check
                                 type="checkbox"
                                 id="wd-media-recordings"
                                 label="Media Recordings"
                                 className="mb-2"
+                                disabled={disabled}
                             />
                             <Form.Check
                                 type="checkbox"
                                 id="wd-student-annotation"
                                 label="Student Annotation"
                                 className="mb-2"
+                                disabled={disabled}
                             />
                             <Form.Check
                                 type="checkbox"
                                 id="wd-file-upload"
                                 label="File Uploads"
+                                disabled={disabled}
                             />
                         </div>
                     </Col>
@@ -147,6 +249,7 @@ export default function AssignmentEditor() {
                                 <Form.Control
                                     type="text"
                                     defaultValue="Everyone"
+                                    disabled={disabled}
                                 />
                             </Form.Group>
 
@@ -155,18 +258,26 @@ export default function AssignmentEditor() {
                                 <Form.Control
                                     type="datetime-local"
                                     id="wd-due-date"
-                                    defaultValue={dueDate}
+                                    value={dueDate}
+                                    disabled={disabled}
+                                    onChange={(e) => setDueDate(e.target.value)}
                                 />
                             </Form.Group>
 
                             <Row>
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="fw-bold">Available from</Form.Label>
+                                        <Form.Label className="fw-bold">
+                                            Available from
+                                        </Form.Label>
                                         <Form.Control
                                             type="datetime-local"
                                             id="wd-available-from"
-                                            defaultValue={availableFrom}
+                                            value={availableFrom}
+                                            disabled={disabled}
+                                            onChange={(e) =>
+                                                setAvailableFrom(e.target.value)
+                                            }
                                         />
                                     </Form.Group>
                                 </Col>
@@ -176,7 +287,11 @@ export default function AssignmentEditor() {
                                         <Form.Control
                                             type="datetime-local"
                                             id="wd-available-until"
-                                            defaultValue=""
+                                            value={availableUntil}
+                                            disabled={disabled}
+                                            onChange={(e) =>
+                                                setAvailableUntil(e.target.value)
+                                            }
                                         />
                                     </Form.Group>
                                 </Col>
@@ -188,16 +303,22 @@ export default function AssignmentEditor() {
                 <hr />
 
                 <div className="d-flex justify-content-end">
-                    <Link href={`/Courses/${cid}/Assignments`}>
-                        <Button variant="secondary" className="me-2">
-                            Cancel
-                        </Button>
-                    </Link>
-                    <Link href={`/Courses/${cid}/Assignments`}>
-                        <Button variant="danger">
+                    <Button
+                        variant="secondary"
+                        className="me-2"
+                        onClick={handleCancel}
+                    >
+                        Cancel
+                    </Button>
+
+                    {isFaculty && (
+                        <Button
+                            variant="danger"
+                            onClick={handleSave}
+                        >
                             Save
                         </Button>
-                    </Link>
+                    )}
                 </div>
             </Form>
         </div>
