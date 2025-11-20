@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 export default function Labs() {
     return (
         <div id="wd-labs">
@@ -26,26 +27,29 @@ export default function Labs() {
                     </Link>
                 </li>
                 <li>
-                    <Link href="/" id="wd-kambaz-link">Kambaz
+                    <Link href="/Labs/Lab4" id="wd-lab4-link">
+                        Lab 4: Managing State and User Input with Forms
                     </Link>
+                </li>
+                <li>
+                    <Link href="/Labs/Lab5" id="wd-lab5-link">
+                        Lab 5: Implementing RESTful Web APIs with Express.js
+                    </Link>
+                </li>
+                <li>
+                    <Link href="/" id="wd-kambaz-link">Kambaz</Link>
                 </li>
             </ul>
 
             <p>
                 <a
-                    id="wd-github-link"
-                    href="https://github.com/tIngxunwang986/kambaz-next-js"
+                    id="wd-github"  //
+                    href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A5"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     GitHub link
                 </a>
-            </p>
-
-            <p>
-                <Link id="wd-kambaz-application-link" href="/Account/Signin">
-                    Link to the Kambaz application
-                </Link>
             </p>
         </div>
     );

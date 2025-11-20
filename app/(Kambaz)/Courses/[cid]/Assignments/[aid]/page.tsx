@@ -1,132 +1,314 @@
+"use client";
+
+import { useState } from "react";
+import Button from "react-bootstrap/Button";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
+import { useParams, useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/(Kambaz)/store";
+import { addAssignment, updateAssignment as updateAssignmentInStore, type Assignment,} from "../reducer";
+import * as Client from "../../../client";
+
+type CurrentUser = {
+    _id: string;
+    username: string;
+    role: "FACULTY" | "STUDENT" | "TA" | "ADMIN";
+};
+
 export default function AssignmentEditor() {
+    const { cid, aid } = useParams() as { cid: string; aid: string };
+    const router = useRouter();
+    const dispatch = useDispatch();
+
+    const assignments = useSelector(
+        (state: RootState) =>
+            state.assignmentsReducer.assignments as Assignment[]
+    );
+
+    const currentUser = useSelector(
+        (state: RootState) =>
+            state.accountReducer.currentUser as CurrentUser | null
+    );
+    const isFaculty = currentUser?.role === "FACULTY";
+
+    const existing =
+        aid !== "new" ? assignments.find((a) => a._id === aid) : undefined;
+
+    const defaultDescription =
+        "The assignment is available online\n\nSubmit a link to the landing page of your Web application running on Netlify.\n\nThe landing page should include the following:\n\n• Your full name and section\n• Links to each of the lab assignments\n• Link to the Kanbas application\n• Links to all relevant source code repositories\n\nThe Kanbas application should include a link to navigate back to the landing page.";
+    const defaultPoints = 100;
+    const defaultDueDate = "2024-05-13T23:59";
+    const defaultAvailableFrom = "2024-05-06T00:00";
+
+    const [name, setName] = useState<string>(
+        existing?.title ?? "New Assignment"
+    );
+    const [description, setDescription] = useState<string>(
+        existing?.description ?? defaultDescription
+    );
+    const [points, setPoints] = useState<number>(
+        existing?.points ?? defaultPoints
+    );
+    const [dueDate, setDueDate] = useState<string>(
+        existing?.dueDate ?? defaultDueDate
+    );
+    const [availableFrom, setAvailableFrom] = useState<string>(
+        existing?.availableFrom ?? defaultAvailableFrom
+    );
+    const [availableUntil, setAvailableUntil] = useState<string>(
+        existing?.availableUntil ?? ""
+    );
+
+    const disabled = !isFaculty;
+
+    const handleCancel = () => {
+        router.push(`/Courses/${cid}/Assignments`);
+    };
+
+    const handleSave = async () => {
+        if (!isFaculty) return;
+
+        const payload: Assignment = {
+            _id: existing ? existing._id : "",
+            course: cid,
+            title: name,
+            description,
+            points,
+            dueDate,
+            availableFrom,
+            availableUntil,
+        };
+
+        try {
+            if (existing) {
+                const updated: Assignment = await Client.updateAssignmentOnServer(
+                    payload
+                );
+                dispatch(updateAssignmentInStore(updated));
+            } else {
+                const created: Assignment = await Client.createAssignmentForCourse(
+                    cid,
+                    payload
+                );
+                dispatch(addAssignment(created));
+            }
+            router.push(`/Courses/${cid}/Assignments`);
+        } catch (e) {
+            console.error("Error saving assignment", e);
+        }
+    };
+
     return (
         <div id="wd-assignments-editor">
-            <label htmlFor="wd-name">Assignment Name</label>
-            <br />
-            <input id="wd-name" defaultValue="A1" />
-            <br />
-            <br />
+            <Form>
+                <Form.Group className="mb-3">
+                    <Form.Label>Assignment Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        id="wd-name"
+                        value={name}
+                        disabled={disabled}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </Form.Group>
 
-            <textarea
-                id="wd-description"
-                defaultValue="Complete all the Lab exercises and Kambaz exercises described in Chapter 1 of Developing Full Stack Next.js Web Applications. Submit a link to the landing page of your Web application running on Vercel."
-            />
+                <Form.Group className="mb-3">
+                    <Form.Control
+                        as="textarea"
+                        rows={10}
+                        id="wd-description"
+                        value={description}
+                        disabled={disabled}
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+                </Form.Group>
 
-            <br />
-            <table>
-                <tbody>
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-points">Points</label> {/* clicking selects the field */}
-                    </td>
-                    <td>
-                        <input id="wd-points" defaultValue={100} />
-                    </td>
-                </tr>
+                <Row className="mb-3">
+                    <Col md={3}>
+                        <Form.Label className="text-end d-block">Points</Form.Label>
+                    </Col>
+                    <Col md={9}>
+                        <Form.Control
+                            type="number"
+                            id="wd-points"
+                            value={points}
+                            disabled={disabled}
+                            onChange={(e) => setPoints(Number(e.target.value))}
+                        />
+                    </Col>
+                </Row>
 
-                <tr>
-                    <td align="right">
-                        <label htmlFor="wd-group">Assignment Group</label>
-                    </td>
-                    <td>
-                        <select id="wd-group" defaultValue="ASSIGNMENTS">
-                            <option>ASSIGNMENTS</option>
-                            <option>QUIZZES</option>
-                            <option>EXAMS</option>
-                            <option>PROJECT</option>
-                        </select>
-                    </td>
-                </tr>
+                <Row className="mb-3">
+                    <Col md={3}>
+                        <Form.Label className="text-end d-block">
+                            Assignment Group
+                        </Form.Label>
+                    </Col>
+                    <Col md={9}>
+                        <Form.Select id="wd-group" disabled={disabled}>
+                            <option value="ASSIGNMENTS">ASSIGNMENTS</option>
+                            <option value="QUIZZES">QUIZZES</option>
+                            <option value="EXAMS">EXAMS</option>
+                            <option value="PROJECT">PROJECT</option>
+                        </Form.Select>
+                    </Col>
+                </Row>
 
-                <tr>
-                    <td align="right">
-                        <label htmlFor="wd-display-grade-as">Display Grade as</label>
-                    </td>
-                    <td>
-                        <select id="wd-display-grade-as" defaultValue="Percentage">
-                            <option>Percentage</option>
-                            <option>Points</option>
-                            <option>Letter Grade</option>
-                        </select>
-                    </td>
-                </tr>
+                <Row className="mb-3">
+                    <Col md={3}>
+                        <Form.Label className="text-end d-block">
+                            Display Grade as
+                        </Form.Label>
+                    </Col>
+                    <Col md={9}>
+                        <Form.Select id="wd-display-grade-as" disabled={disabled}>
+                            <option value="PERCENTAGE">Percentage</option>
+                            <option value="POINTS">Points</option>
+                        </Form.Select>
+                    </Col>
+                </Row>
 
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-submission-type">Submission Type</label>
-                    </td>
-                    <td>
-                        <select id="wd-submission-type" defaultValue="Online">
-                            <option>Online</option>
-                            <option>On Paper</option>
-                            <option>No Submission</option>
-                        </select>
+                <Row className="mb-3">
+                    <Col md={3}>
+                        <Form.Label className="text-end d-block">
+                            Submission Type
+                        </Form.Label>
+                    </Col>
+                    <Col md={9}>
+                        <div className="border rounded p-3">
+                            <Form.Select
+                                id="wd-submission-type"
+                                className="mb-3"
+                                disabled={disabled}
+                            >
+                                <option value="ONLINE">Online</option>
+                                <option value="ON_PAPER">On Paper</option>
+                            </Form.Select>
 
-                        <div>
-                            <div>
-                                <input id="wd-text-entry" type="checkbox" />
-                                <label htmlFor="wd-text-entry">Text Entry</label>
-                            </div>
-                            <div>
-                                <input id="wd-website-url" type="checkbox" defaultChecked />
-                                <label htmlFor="wd-website-url">Website URL</label>
-                            </div>
-                            <div>
-                                <input id="wd-media-recordings" type="checkbox" />
-                                <label htmlFor="wd-media-recordings">Media Recordings</label>
-                            </div>
-                            <div>
-                                <input id="wd-student-annotation" type="checkbox" />
-                                <label htmlFor="wd-student-annotation">Student Annotation</label>
-                            </div>
-                            <div>
-                                <input id="wd-file-upload" type="checkbox" />
-                                <label htmlFor="wd-file-upload">File Uploads</label>
-                            </div>
+                            <Form.Label className="fw-bold">
+                                Online Entry Options
+                            </Form.Label>
+                            <Form.Check
+                                type="checkbox"
+                                id="wd-text-entry"
+                                label="Text Entry"
+                                className="mb-2"
+                                disabled={disabled}
+                            />
+                            <Form.Check
+                                type="checkbox"
+                                id="wd-website-url"
+                                label="Website URL"
+                                defaultChecked
+                                className="mb-2"
+                                disabled={disabled}
+                            />
+                            <Form.Check
+                                type="checkbox"
+                                id="wd-media-recordings"
+                                label="Media Recordings"
+                                className="mb-2"
+                                disabled={disabled}
+                            />
+                            <Form.Check
+                                type="checkbox"
+                                id="wd-student-annotation"
+                                label="Student Annotation"
+                                className="mb-2"
+                                disabled={disabled}
+                            />
+                            <Form.Check
+                                type="checkbox"
+                                id="wd-file-upload"
+                                label="File Uploads"
+                                disabled={disabled}
+                            />
                         </div>
-                    </td>
-                </tr>
+                    </Col>
+                </Row>
 
-                <tr>
-                    <td align="right">
-                        <label htmlFor="wd-assign-to">Assign Assign to</label>
-                    </td>
-                    <td>
-                        <select id="wd-assign-to" defaultValue="Everyone">
-                            <option>Everyone</option>
-                        </select>
-                    </td>
-                </tr>
+                <Row className="mb-3">
+                    <Col md={3}>
+                        <Form.Label className="text-end d-block">Assign</Form.Label>
+                    </Col>
+                    <Col md={9}>
+                        <div className="border rounded p-3">
+                            <Form.Group className="mb-3">
+                                <Form.Label className="fw-bold">Assign to</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    defaultValue="Everyone"
+                                    disabled={disabled}
+                                />
+                            </Form.Group>
 
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-due-date">Due</label> {/* clicking focuses date input */}
-                    </td>
-                    <td>
-                        <input id="wd-due-date" type="date" defaultValue="2024-05-13" />
-                    </td>
-                </tr>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="fw-bold">Due</Form.Label>
+                                <Form.Control
+                                    type="datetime-local"
+                                    id="wd-due-date"
+                                    value={dueDate}
+                                    disabled={disabled}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                />
+                            </Form.Group>
 
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-available-from">Available from</label>
-                    </td>
-                    <td>
-                        <input id="wd-available-from" type="date" defaultValue="2024-05-06" />
-                        &nbsp; <label htmlFor="wd-available-until">Until</label> &nbsp;
-                        <input id="wd-available-until" type="date" defaultValue="2024-05-20" />
-                    </td>
-                </tr>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-bold">
+                                            Available from
+                                        </Form.Label>
+                                        <Form.Control
+                                            type="datetime-local"
+                                            id="wd-available-from"
+                                            value={availableFrom}
+                                            disabled={disabled}
+                                            onChange={(e) =>
+                                                setAvailableFrom(e.target.value)
+                                            }
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-bold">Until</Form.Label>
+                                        <Form.Control
+                                            type="datetime-local"
+                                            id="wd-available-until"
+                                            value={availableUntil}
+                                            disabled={disabled}
+                                            onChange={(e) =>
+                                                setAvailableUntil(e.target.value)
+                                            }
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        </div>
+                    </Col>
+                </Row>
 
-                <tr>
-                    <td />
-                    <td>
-                        <button>Cancel</button>
-                        <button>Save</button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                <hr />
+
+                <div className="d-flex justify-content-end">
+                    <Button
+                        variant="secondary"
+                        className="me-2"
+                        onClick={handleCancel}
+                    >
+                        Cancel
+                    </Button>
+
+                    {isFaculty && (
+                        <Button variant="danger" onClick={handleSave}>
+                            Save
+                        </Button>
+                    )}
+                </div>
+            </Form>
         </div>
     );
 }
