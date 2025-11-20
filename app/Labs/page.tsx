@@ -32,6 +32,11 @@ export default function Labs() {
                     </Link>
                 </li>
                 <li>
+                    <Link href="/Labs/Lab5" id="wd-lab5-link">
+                        Lab 5: Implementing RESTful Web APIs with Express.js
+                    </Link>
+                </li>
+                <li>
                     <Link href="/" id="wd-kambaz-link">Kambaz</Link>
                 </li>
             </ul>
@@ -39,7 +44,7 @@ export default function Labs() {
             <p>
                 <a
                     id="wd-github"  //
-                    href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A4"
+                    href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A5"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
