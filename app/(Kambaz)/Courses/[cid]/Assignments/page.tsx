@@ -1,24 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/(Kambaz)/store";
 import { FaCheckCircle, FaEllipsisV, FaPlus, FaTrash } from "react-icons/fa";
+import { BsGripVertical } from "react-icons/bs";
+import { FiSearch } from "react-icons/fi";
 import Button from "react-bootstrap/Button";
 import FormControl from "react-bootstrap/FormControl";
 import InputGroup from "react-bootstrap/InputGroup";
 import InputGroupText from "react-bootstrap/InputGroupText";
-import { BsGripVertical } from "react-icons/bs";
-import { FiSearch } from "react-icons/fi";
-import { useParams } from "next/navigation";
-
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/app/(Kambaz)/store";
-import { deleteAssignment } from "./reducer";
-
-type Assignment = {
-    _id: string;
-    title: string;
-    course: string;
-};
+import { deleteAssignment, setAssignments, type Assignment,} from "./reducer";
+import * as client from "../../client";
 
 type CurrentUser = {
     _id: string;
@@ -27,12 +22,12 @@ type CurrentUser = {
 };
 
 export default function Assignments() {
-    const { cid } = useParams();
+    const { cid } = useParams() as { cid: string };
     const dispatch = useDispatch();
 
-    const { assignments } = useSelector(
-        (state: RootState) => state.assignmentsReducer
-    );
+    const assignments = useSelector(
+        (state: RootState) => state.assignmentsReducer.assignments
+    ) as Assignment[];
 
     const currentUser = useSelector(
         (state: RootState) =>
@@ -41,17 +36,30 @@ export default function Assignments() {
 
     const isFaculty = currentUser?.role === "FACULTY";
 
-    const courseAssignments = (assignments as Assignment[]).filter(
+    useEffect(() => {
+        const loadAssignments = async () => {
+            if (!cid) return;
+            const data = await client.findAssignmentsForCourse(cid);
+            dispatch(setAssignments(data));
+        };
+        loadAssignments();
+    }, [cid, dispatch]);
+
+    const courseAssignments = assignments.filter(
         (assignment) => assignment.course === cid
     );
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (!isFaculty) return;
         const ok = window.confirm(
             "Are you sure you want to remove this assignment?"
         );
         if (!ok) return;
-        dispatch(deleteAssignment(id));
+
+        const status = await client.deleteAssignmentOnServer(id);
+        if (status === 200 || status === 204) {
+            dispatch(deleteAssignment(id));
+        }
     };
 
     return (
@@ -102,7 +110,10 @@ export default function Assignments() {
           </span>
                 </h3>
 
-                <ul id="wd-assignment-list" className="list-group">
+                <ul
+                    id="wd-assignment-list"
+                    className="list-group"
+                >
                     {courseAssignments.map((assignment) => (
                         <li
                             key={assignment._id}

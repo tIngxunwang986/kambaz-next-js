@@ -1,39 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { redirect } from "next/dist/client/components/navigation";
-import { setCurrentUser } from "../reducer";
+import { redirect } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
-import * as db from "../../Database";
 import { Form, Button } from "react-bootstrap";
-
-interface CredentialsType {
-    username?: string;
-    password?: string;
-}
-
-interface UserType {
-    _id: string;
-    username: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    email?: string;
-    role?: string;
-    dob?: string;
-}
+import { setCurrentUser } from "../reducer";
+import * as client from "../client";
+import type { CredentialsType } from "../client";
 
 export default function Signin() {
-    const [credentials, setCredentials] = useState<CredentialsType>({});
+    const [credentials, setCredentials] = useState<CredentialsType>({
+        username: "",
+        password: "",
+    });
+
     const dispatch = useDispatch();
 
-    const signin = () => {
-        const user = db.users.find(
-            (u: UserType) =>
-                u.username === credentials.username &&
-                u.password === credentials.password
-        );
+    const signin = async () => {
+        const user = await client.signin(credentials);
         if (!user) return;
         dispatch(setCurrentUser(user));
         redirect("/Dashboard");
@@ -53,17 +38,22 @@ export default function Signin() {
                             id="wd-username"
                             type="text"
                             placeholder="username"
-                            defaultValue={credentials.username}
-                            onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                            value={credentials.username}
+                            onChange={(e) =>
+                                setCredentials({ ...credentials, username: e.target.value })
+                            }
                         />
                     </Form.Group>
+
                     <Form.Group className="mb-3">
                         <Form.Control
                             id="wd-password"
                             type="password"
                             placeholder="password"
-                            defaultValue={credentials.password}
-                            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                            value={credentials.password}
+                            onChange={(e) =>
+                                setCredentials({ ...credentials, password: e.target.value })
+                            }
                         />
                     </Form.Group>
 
@@ -76,7 +66,11 @@ export default function Signin() {
                     </Button>
 
                     <div className="mt-2">
-                        <Link href="/Account/Signup" className="text-decoration-none" id="wd-signup-link">
+                        <Link
+                            href="/Account/Signup"
+                            className="text-decoration-none"
+                            id="wd-signup-link"
+                        >
                             Sign up
                         </Link>
                     </div>

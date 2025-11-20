@@ -6,21 +6,10 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import { useParams, useRouter } from "next/navigation";
-
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/(Kambaz)/store";
-import { addAssignment, updateAssignment } from "../reducer";
-
-type Assignment = {
-    _id: string;
-    course: string;
-    title: string;
-    description?: string;
-    points?: number;
-    dueDate?: string;
-    availableFrom?: string;
-    availableUntil?: string;
-};
+import { addAssignment, updateAssignment as updateAssignmentInStore, type Assignment,} from "../reducer";
+import * as Client from "../../../client";
 
 type CurrentUser = {
     _id: string;
@@ -44,17 +33,15 @@ export default function AssignmentEditor() {
     );
     const isFaculty = currentUser?.role === "FACULTY";
 
-    // existing assignment when editing (undefined when creating new)
-    const existing = assignments.find((a) => a._id === aid);
+    const existing =
+        aid !== "new" ? assignments.find((a) => a._id === aid) : undefined;
 
-    // default values (your original constants)
     const defaultDescription =
         "The assignment is available online\n\nSubmit a link to the landing page of your Web application running on Netlify.\n\nThe landing page should include the following:\n\n• Your full name and section\n• Links to each of the lab assignments\n• Link to the Kanbas application\n• Links to all relevant source code repositories\n\nThe Kanbas application should include a link to navigate back to the landing page.";
     const defaultPoints = 100;
     const defaultDueDate = "2024-05-13T23:59";
     const defaultAvailableFrom = "2024-05-06T00:00";
 
-    // local editable state
     const [name, setName] = useState<string>(
         existing?.title ?? "New Assignment"
     );
@@ -77,15 +64,14 @@ export default function AssignmentEditor() {
     const disabled = !isFaculty;
 
     const handleCancel = () => {
-        // Do NOT update Redux; just go back
         router.push(`/Courses/${cid}/Assignments`);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!isFaculty) return;
 
         const payload: Assignment = {
-            _id: existing ? existing._id : "", // reducer will generate new _id for add
+            _id: existing ? existing._id : "",
             course: cid,
             title: name,
             description,
@@ -95,15 +81,23 @@ export default function AssignmentEditor() {
             availableUntil,
         };
 
-        if (existing) {
-            // editing
-            dispatch(updateAssignment(payload));
-        } else {
-            // creating new
-            dispatch(addAssignment(payload));
+        try {
+            if (existing) {
+                const updated: Assignment = await Client.updateAssignmentOnServer(
+                    payload
+                );
+                dispatch(updateAssignmentInStore(updated));
+            } else {
+                const created: Assignment = await Client.createAssignmentForCourse(
+                    cid,
+                    payload
+                );
+                dispatch(addAssignment(created));
+            }
+            router.push(`/Courses/${cid}/Assignments`);
+        } catch (e) {
+            console.error("Error saving assignment", e);
         }
-
-        router.push(`/Courses/${cid}/Assignments`);
     };
 
     return (
@@ -169,10 +163,7 @@ export default function AssignmentEditor() {
                         </Form.Label>
                     </Col>
                     <Col md={9}>
-                        <Form.Select
-                            id="wd-display-grade-as"
-                            disabled={disabled}
-                        >
+                        <Form.Select id="wd-display-grade-as" disabled={disabled}>
                             <option value="PERCENTAGE">Percentage</option>
                             <option value="POINTS">Points</option>
                         </Form.Select>
@@ -312,10 +303,7 @@ export default function AssignmentEditor() {
                     </Button>
 
                     {isFaculty && (
-                        <Button
-                            variant="danger"
-                            onClick={handleSave}
-                        >
+                        <Button variant="danger" onClick={handleSave}>
                             Save
                         </Button>
                     )}
