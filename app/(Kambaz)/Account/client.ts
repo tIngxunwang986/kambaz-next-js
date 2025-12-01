@@ -21,7 +21,41 @@ export interface UserType {
     dob?: string;
     email?: string;
     role?: string;
+    loginId?: string;
+    section?: string;
+    lastActivity?: string;
+    totalActivity?: string;
 }
+
+export const findAllUsers = async () => {
+    const response = await axiosWithCredentials.get(USERS_API);
+    return response.data;
+};
+
+export const findUsersByRole = async (role: string) => {
+    const response = await axiosWithCredentials.get(`${USERS_API}?role=${role}`);
+    return response.data;
+};
+
+export const findUsersByPartialName = async (name: string) => {
+    const response = await axiosWithCredentials.get(`${USERS_API}?name=${name}`);
+    return response.data;
+};
+
+export const findUserById = async (id: string) => {
+    const response = await axiosWithCredentials.get(`${USERS_API}/${id}`);
+    return response.data;
+};
+
+export const deleteUser = async (userId: string) => {
+    const response = await axiosWithCredentials.delete(`${USERS_API}/${userId}`);
+    return response.data;
+};
+
+export const createUser = async (user: UserType) => {
+    const response = await axiosWithCredentials.post(USERS_API, user);
+    return response.data;
+};
 
 export const signin = async (credentials: CredentialsType) => {
     const response = await axiosWithCredentials.post(
