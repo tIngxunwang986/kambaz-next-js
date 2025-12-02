@@ -49,12 +49,10 @@ export default function Dashboard() {
         description: "New Description",
     });
 
-    // false = show only my courses, true = show all courses
     const [showAllCourses, setShowAllCourses] = useState(false);
 
     const isFaculty = currentUser?.role === "FACULTY";
 
-    // 🔄 Load courses + enrollments from server when user logs in
     useEffect(() => {
         const fetchData = async () => {
             if (!currentUser) return;
@@ -91,7 +89,6 @@ export default function Dashboard() {
         );
     };
 
-    // Courses visible in the list
     const visibleCourses = showAllCourses
         ? courses
         : courses.filter((c) => isEnrolledInCourse(c._id));
@@ -129,36 +126,24 @@ export default function Dashboard() {
         }
     };
 
-    // 🔁 Enroll / Unenroll that talks to the server
     const toggleEnrollment = async (courseId: string) => {
         if (!currentUser) return;
         const enrolled = isEnrolledInCourse(courseId);
 
         try {
             if (enrolled) {
-                // find the enrollment row so we can delete by _id
-                const enrollment = enrollments.find(
-                    (e) => e.user === currentUser._id && e.course === courseId
+                await client.unenrollFromCourse(currentUser._id, courseId);
+                dispatch(
+                    unenrollCourse({
+                        user: currentUser._id,
+                        course: courseId,
+                    })
                 );
-                if (!enrollment || !enrollment._id) return;
-
-                const status = await client.unenrollFromCourseOnServer(
-                    enrollment._id
-                );
-                if (status === 200) {
-                    dispatch(
-                        unenrollCourse({
-                            user: currentUser._id,
-                            course: courseId,
-                        })
-                    );
-                }
             } else {
-                const newEnrollment = await client.enrollInCourseOnServer(
+                const newEnrollment = await client.enrollIntoCourse(
                     currentUser._id,
                     courseId
                 );
-                // newEnrollment includes _id, user, course
                 dispatch(enrollCourse(newEnrollment));
             }
         } catch (e) {
@@ -171,7 +156,6 @@ export default function Dashboard() {
             <div className="d-flex justify-content-between align-items-center">
                 <h1 id="wd-dashboard-title">Dashboard</h1>
 
-                {/* 🔵 Blue Enrollments button */}
                 <Button
                     id="wd-enrollments-toggle"
                     variant="primary"
@@ -259,7 +243,6 @@ export default function Dashboard() {
 
                                     <Button variant="primary">Go</Button>
 
-                                    {/* ✅ Enroll / Unenroll buttons */}
                                     <button
                                         className={`btn ${
                                             enrolled ? "btn-danger" : "btn-success"
