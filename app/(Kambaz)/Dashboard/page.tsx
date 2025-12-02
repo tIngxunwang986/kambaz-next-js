@@ -128,11 +128,13 @@ export default function Dashboard() {
 
     const toggleEnrollment = async (courseId: string) => {
         if (!currentUser) return;
-        const enrolled = isEnrolledInCourse(courseId);
+        const enrollment = enrollments.find(
+            (e) => e.user === currentUser._id && e.course === courseId
+        );
 
         try {
-            if (enrolled) {
-                await client.unenrollFromCourse(currentUser._id, courseId);
+            if (enrollment) {
+                await client.unenrollFromCourse(enrollment._id);
                 dispatch(
                     unenrollCourse({
                         user: currentUser._id,
