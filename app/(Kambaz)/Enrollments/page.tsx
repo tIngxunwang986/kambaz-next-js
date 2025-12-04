@@ -80,7 +80,7 @@ export default function EnrollmentsPage() {
                 );
                 if (!enrollment || !enrollment._id) return;
 
-                const status = await client.unenrollFromCourseOnServer(
+                const status = await client.unenrollFromCourse(
                     enrollment._id
                 );
                 if (status === 200) {
@@ -92,7 +92,7 @@ export default function EnrollmentsPage() {
                     );
                 }
             } else {
-                const created = await client.enrollInCourseOnServer(
+                const created = await client.enrollIntoCourse(
                     userId,
                     courseId
                 );
