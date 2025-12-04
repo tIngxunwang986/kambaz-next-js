@@ -23,18 +23,15 @@ const enrollmentsSlice = createSlice({
         },
         enrollCourse: (
             state,
-            { payload }: { payload: { user: string; course: string } }
+            { payload }: { payload: Enrollment }
         ) => {
             const already = state.enrollments.some(
                 (e) => e.user === payload.user && e.course === payload.course
             );
             if (already) return;
-            state.enrollments.push({
-                _id: "TEMP",
-                user: payload.user,
-                course: payload.course,
-            });
+            state.enrollments.push(payload);
         },
+
         unenrollCourse: (
             state,
             { payload }: { payload: { user: string; course: string } }

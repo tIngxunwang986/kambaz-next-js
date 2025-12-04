@@ -56,7 +56,7 @@ export default function Assignments() {
         );
         if (!ok) return;
 
-        const status = await client.deleteAssignmentOnServer(id);
+        const status = await client.deleteAssignment(id);
         if (status === 200 || status === 204) {
             dispatch(deleteAssignment(id));
         }

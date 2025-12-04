@@ -245,17 +245,19 @@ export default function Dashboard() {
 
                                     <Button variant="primary">Go</Button>
 
-                                    <button
-                                        className={`btn ${
-                                            enrolled ? "btn-danger" : "btn-success"
-                                        } ms-2`}
-                                        onClick={(event) => {
-                                            event.preventDefault();
-                                            void toggleEnrollment(course._id);
-                                        }}
-                                    >
-                                        {enrolled ? "Unenroll" : "Enroll"}
-                                    </button>
+                                    {showAllCourses && (
+                                        <button
+                                            className={`btn ${
+                                                enrolled ? "btn-danger" : "btn-success"
+                                            } ms-2`}
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                void toggleEnrollment(course._id);
+                                            }}
+                                        >
+                                            {enrolled ? "Unenroll" : "Enroll"}
+                                        </button>
+                                    )}
 
                                     {isFaculty && (
                                         <>

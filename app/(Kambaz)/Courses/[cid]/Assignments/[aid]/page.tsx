@@ -83,7 +83,7 @@ export default function AssignmentEditor() {
 
         try {
             if (existing) {
-                const updated: Assignment = await Client.updateAssignmentOnServer(
+                const updated: Assignment = await Client.updateAssignment(
                     payload
                 );
                 dispatch(updateAssignmentInStore(updated));
