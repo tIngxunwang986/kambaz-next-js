@@ -44,7 +44,7 @@ export default function Labs() {
             <p>
                 <a
                     id="wd-github"  //
-                    href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A5"
+                    href="https://github.com/tIngxunwang986/kambaz-next-js/tree/A6"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
